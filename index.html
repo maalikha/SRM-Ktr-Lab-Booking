@@ -282,6 +282,20 @@ body.dark .photo-circle { background: #1e2d48; }
   .past-grid { grid-template-columns: 1fr; }
   .page-wrap, .page-wrap-wide { padding: 16px 12px 60px; }
   .form-col { max-width: 100%; }
+
+  /* Date & time fields: smaller on mobile, label on its own line, input on next */
+  .field-date-mobile label {
+    font-size: 11px;
+    margin-bottom: 4px;
+    display: block;
+    white-space: nowrap;
+  }
+  .field-date-mobile input {
+    font-size: 13px;
+    padding: 9px 10px;
+    width: 100%;
+    display: block;
+  }
 }
 </style>
 </head>
@@ -289,7 +303,7 @@ body.dark .photo-circle { background: #1e2d48; }
 
 <!-- ══ HEADER ══ -->
 <div class="header">
-  <div class="header-left" 
+  <div class="header-left">
     <div class="srm-logo"><img src="srm logo.png" alt="SRM"/></div>
     <span class="header-title" id="header-title">SRM KTR</span>
   </div>
@@ -324,14 +338,14 @@ body.dark .photo-circle { background: #1e2d48; }
   <!-- Photo -->
   <div class="photo-section">
     <div class="photo-circle" title="Tap to add photo">
-      <div class="photo-hint-inner" id="photo-hint">
+      <div class="photo-hint-inner" id="photo-hint" style="display:none">
         <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
           <circle cx="12" cy="8" r="4" fill="#888"/>
           <path d="M4 20c0-4 3.582-7 8-7s8 3 8 7" fill="#888"/>
         </svg>
         <span>ADD PHOTO</span>
       </div>
-      <img id="photo-preview" src="" alt=""/>
+      <img id="photo-preview" src="srm logo.png" alt="SRM" style="display:block;"/>
       <input type="file" accept="image/*" onchange="handlePhoto(this)"/>
     </div>
     <span class="photo-label">Profile Photo (optional)</span>
@@ -436,22 +450,22 @@ body.dark .photo-circle { background: #1e2d48; }
       <label>Hostel Name:</label>
       <input type="text" id="p-hostel" readonly/>
     </div>
-    <div class="field">
+    <div class="field field-date-mobile">
       <label class="blue">Out Date:</label>
       <input type="date" id="out-date" class="editable"
              onchange="liveCheck(this);checkForm()" oninput="liveCheck(this);checkForm()"/>
     </div>
-    <div class="field">
+    <div class="field field-date-mobile">
       <label class="blue">Out Time:</label>
       <input type="time" id="out-time" class="editable"
              onchange="liveCheck(this);checkForm()" oninput="liveCheck(this);checkForm()"/>
     </div>
-    <div class="field">
+    <div class="field field-date-mobile">
       <label class="blue">In Date:</label>
       <input type="date" id="in-date" class="editable"
              onchange="liveCheck(this);checkForm()" oninput="liveCheck(this);checkForm()"/>
     </div>
-    <div class="field">
+    <div class="field field-date-mobile">
       <label class="blue">In Time:</label>
       <input type="time" id="in-time" class="editable"
              onchange="liveCheck(this);checkForm()" oninput="liveCheck(this);checkForm()"/>
@@ -654,6 +668,12 @@ function applyPhoto(src) {
   document.getElementById('badge-initials').style.display = 'none';
 }
 
+function resetPhotoToLogo() {
+  const img = document.getElementById('photo-preview');
+  img.src = 'srm logo.png'; img.style.display = 'block';
+  document.getElementById('photo-hint').style.display = 'none';
+}
+
 function p1Live(el) {
   el.classList.toggle('filled', el.value.trim().length > 0);
   updateBadge();
@@ -826,6 +846,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   const photo = sGet(PHOTO_KEY);
   if (photo) applyPhoto(photo);
+  else resetPhotoToLogo();
 
   /* if profile exists, restore page 1 fields */
   const profRaw = sGet(PROFILE_KEY);
