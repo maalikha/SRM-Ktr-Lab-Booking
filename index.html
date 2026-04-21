@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SRM Ktr Lab Booking</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+       background: #f0f2f5; color: #222; min-height: 100vh; }
+
+/* ══ HEADER ══ */
+.header {
+  background: #1b3c72; height: 58px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 22px; z-index: 100;
+}
+.header-left { display: flex; align-items: center; gap: 12px; }
+.srm-logo {
+  width: 40px; height: 40px; border-radius: 50%;
+  border: 2px solid #c8a84b; background: #d8e4f0;
+  overflow: hidden; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.srm-logo img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block; }
+.header-title { font-size: 17px; font-weight: 800; color: #fff; letter-spacing: .06em; }
+.header-center {
+  position: absolute; left: 50%; transform: translateX(-50%);
+  font-size: 15px; font-weight: 500; color: rgba(255,255,255,.88);
+  pointer-events: none;
+}
+.header-right { display: flex; align-items: center; gap: 10px; }
+
+/* profile badge top-right */
+.profile-badge {
+  display: none; align-items: center; gap: 8px;
+  background: rgba(255,255,255,.13); border-radius: 8px;
+  padding: 4px 10px 4px 6px;
+}
+.profile-avatar {
+  width: 28px; height: 28px; border-radius: 50%;
+  border: 2px solid #c8a84b; background: #2a4a8a;
+  overflow: hidden; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 800; color: #fff;
+}
+.profile-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+.p-info { display: flex; flex-direction: column; }
+.p-name  { font-size: 11px; font-weight: 700; color: #fff; max-width: 110px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.p-email { font-size: 10px; color: rgba(255,255,255,.7); max-width: 110px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.btn-header {
+  background: transparent; color: #fff;
+  border: 1.5px solid rgba(255,255,255,.7); border-radius: 6px;
+  padding: 6px 16px; font-family: inherit; font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: background .2s; white-space: nowrap;
+}
+.btn-header:hover { background: rgba(255,255,255,.14); }
+
+/* ══ PAGES ══ */
+.page { display: none; }
+.page.active { display: block; }
+
+.page-wrap { max-width: 560px; margin: 0 auto; padding: 32px 18px 80px; }
+.page-wrap-wide { max-width: 960px; margin: 0 auto; padding: 32px 18px 80px; }
+.form-col { max-width: 520px; margin: 0 auto; }
+
+h1.page-title { font-size: 26px; font-weight: 900; text-align: center; color: #111; margin-bottom: 10px; }
+.title-divider { border: none; border-top: 2.5px solid #1b3c72; margin: 0 0 26px; }
+
+/* ══ CARDS ══ */
+.card {
+  background: #fff; border-radius: 12px;
+  padding: 22px 20px; margin-bottom: 20px;
+  box-shadow: 0 1px 8px rgba(0,0,0,.07);
+}
+.card-title {
+  font-size: 12px; font-weight: 800; color: #1b3c72;
+  letter-spacing: .07em; text-transform: uppercase;
+  margin-bottom: 18px; padding-bottom: 10px;
+  border-bottom: 2px solid #eef0f7;
+}
+
+/* ══ FIELDS ══ */
+.field { margin-bottom: 18px; }
+.field:last-child { margin-bottom: 0; }
+.field label { display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 6px; }
+.field label.blue { color: #1b3c72; }
+.field input {
+  width: 100%; padding: 13px 14px;
+  border: 1.5px solid #ddd; border-radius: 8px;
+  font-family: inherit; font-size: 16px; color: #222;
+  background: #fafafa; outline: none;
+  -webkit-appearance: none; appearance: none;
+  transition: border-color .22s, background .22s, box-shadow .22s;
+}
+.field input:focus { border-color: #1b3c72; background: #fff; box-shadow: 0 0 0 3px rgba(27,60,114,.08); }
+.field input[readonly] { color: #999; background: #f3f3f3; cursor: default; }
+
+/* editable on page 1: red when empty */
+.field input.editable-p1 { background: #fff5f5; border-color: #e8b4b4; }
+/* green when filled */
+.field input.editable-p1.filled { background: #f2fff3; border-color: #43a047; box-shadow: 0 0 0 2px rgba(67,160,71,.10); }
+.field input.editable-p1:focus { border-color: #1b3c72 !important; background: #fff; box-shadow: 0 0 0 3px rgba(27,60,114,.08) !important; }
+
+/* editable on page 2: red when empty */
+.field input.editable { background: #fff5f5; border-color: #e8b4b4; }
+.field input.editable.filled { background: #f2fff3; border-color: #43a047; box-shadow: 0 0 0 2px rgba(67,160,71,.10); }
+.field input.editable:focus { border-color: #1b3c72 !important; background: #fff; box-shadow: none !important; }
+
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 18px; }
+.field-row .field { margin-bottom: 0; }
+
+/* ══ BUTTONS ══ */
+.btn-primary {
+  width: 100%; padding: 15px;
+  background: #c8c8c8; color: #fff;
+  border: none; border-radius: 8px;
+  font-family: inherit; font-size: 16px; font-weight: 700;
+  cursor: not-allowed; margin-top: 8px; transition: background .2s;
+}
+.btn-primary.active { background: #1b3c72; cursor: pointer; }
+.btn-primary.active:hover { background: #15316a; }
+
+.btn-green {
+  display: none; width: 100%; padding: 15px;
+  background: #27ae38; color: #fff;
+  border: none; border-radius: 8px;
+  font-family: inherit; font-size: 16px; font-weight: 700;
+  cursor: pointer; margin-top: 12px; transition: background .2s;
+}
+.btn-green.show { display: block; }
+.btn-green:hover { background: #219a30; }
+
+/* success banner */
+.success-banner {
+  background: #f0fff4; border: 1.5px solid #43a047; border-radius: 8px;
+  padding: 12px 16px; margin-bottom: 20px;
+  display: none; align-items: center; gap: 10px;
+  font-size: 14px; font-weight: 600; color: #1a6b1a;
+}
+.success-banner.show { display: flex; }
+
+/* photo section */
+.photo-section { display: flex; flex-direction: column; align-items: center; margin-bottom: 24px; }
+.photo-circle {
+  width: 84px; height: 84px; border-radius: 50%;
+  border: 3px solid #c8a84b; background: #d8e4f0;
+  overflow: hidden; cursor: pointer; position: relative;
+  display: flex; align-items: center; justify-content: center; margin-bottom: 8px;
+}
+.photo-circle img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: none; }
+.photo-circle input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.photo-hint-inner { display: flex; flex-direction: column; align-items: center; gap: 3px; pointer-events: none; }
+.photo-hint-inner svg { opacity: .45; }
+.photo-hint-inner span { font-size: 9px; color: #777; font-weight: 700; letter-spacing: .04em; }
+.photo-label { font-size: 12px; color: #999; font-weight: 500; }
+
+/* ══ PAGE 2 SPECIFIC ══ */
+.form-section {
+  background: #fff; border-radius: 10px;
+  padding: 22px 20px; margin-bottom: 22px;
+  box-shadow: 0 1px 8px rgba(0,0,0,.07);
+  transition: opacity .35s, filter .35s;
+}
+.form-section.frozen { opacity: .5; filter: grayscale(25%); pointer-events: none; user-select: none; }
+
+.alert-red {
+  background: #fff3f3; border-left: 4px solid #e53935;
+  color: #c62828; font-weight: 600; font-size: 14px;
+  padding: 11px 16px; border-radius: 6px; margin-bottom: 20px; display: none; line-height: 1.5;
+}
+.alert-otp-date {
+  background: #fce4ec; border-left: 4px solid #e53935;
+  color: #b71c1c; font-weight: 500; font-size: 13.5px;
+  padding: 11px 18px; border-radius: 6px;
+  margin-bottom: 20px; display: none; text-align: center; line-height: 1.5;
+}
+
+.btn-send {
+  width: 100%; padding: 14px; background: #c8c8c8; color: #fff;
+  border: none; border-radius: 7px; font-family: inherit; font-size: 15px; font-weight: 700;
+  cursor: not-allowed; margin-top: 8px; transition: background .2s;
+}
+.btn-send.active { background: #1b3c72; cursor: pointer; }
+.btn-send.active:hover { background: #15316a; }
+
+/* bottom grid */
+.bottom-grid { display: none; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 28px; align-items: start; }
+.bottom-grid.visible { display: grid; }
+
+.current-card {
+  border: 2px solid #f0b429; border-radius: 10px; background: #fff;
+  display: flex; flex-direction: column; position: relative;
+  box-shadow: 0 1px 8px rgba(240,180,41,.12); overflow: hidden;
+}
+.current-card-body { padding: 18px 18px 0; flex: 1; }
+.current-card-title { font-size: 15px; font-weight: 800; margin-bottom: 14px; color: #111; }
+.still-out-badge {
+  position: absolute; top: 16px; right: 16px;
+  background: #f0b429; color: #5c3300;
+  font-size: 11px; font-weight: 800; padding: 4px 12px; border-radius: 6px; letter-spacing: .06em;
+}
+.detail-line { font-size: 13.5px; margin-bottom: 9px; line-height: 1.4; color: #333; }
+.detail-line strong { font-weight: 700; color: #111; }
+.handled-box {
+  background: #f5f5f5; border-radius: 7px; padding: 11px 13px; margin: 13px 0 18px; border: 1px solid #ebebeb;
+}
+.handled-box p { font-size: 13px; font-weight: 600; color: #444; margin-bottom: 4px; }
+.handled-box p:last-child { margin-bottom: 0; }
+.btn-otp {
+  display: block; width: 100%; padding: 15px; background: #27ae38; color: #fff;
+  border: none; font-family: inherit; font-size: 15px; font-weight: 700;
+  cursor: pointer; text-align: center; transition: background .2s; margin-top: auto; flex-shrink: 0;
+}
+.btn-otp:hover { background: #219a30; }
+.btn-otp.used { background: #aaa; cursor: default; }
+.btn-otp.used:hover { background: #aaa; }
+
+.otp-card {
+  border: 1.5px solid #c8e08a; border-radius: 10px; background: #f8fce8;
+  box-shadow: 0 1px 8px rgba(100,160,40,.09);
+  display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+  text-align: center; padding: 18px 20px;
+}
+.otp-card-title { font-size: 20px; font-weight: 900; color: #111; margin-bottom: 10px; width: 100%; text-align: right; }
+.otp-card-line { border: none; border-top: 2px solid #1b3c72; width: 100%; margin: 0 0 16px; }
+.otp-card-dates { font-size: 13px; font-weight: 700; color: #111; margin-bottom: 10px; width: 100%; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.otp-card-number { font-size: 28px; font-weight: 800; color: #27ae38; letter-spacing: .12em; margin-bottom: 14px; width: 100%; text-align: right; }
+.otp-card-note { font-size: 13px; color: #888; line-height: 1.7; width: 100%; text-align: center; }
+
+/* past outings */
+.past-title { font-size: 22px; font-weight: 900; margin-bottom: 6px; color: #111; }
+.past-divider { border: none; border-top: 2.5px solid #1b3c72; margin-bottom: 20px; }
+.past-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; }
+.past-card {
+  border: 1.5px solid #81c784; border-radius: 10px; background: #fff;
+  padding: 16px; position: relative; box-shadow: 0 1px 6px rgba(40,160,50,.06);
+}
+.confirmed-badge {
+  position: absolute; top: 12px; right: 12px;
+  background: #c8f0c8; color: #1a6b1a; font-size: 11px; font-weight: 800;
+  padding: 4px 10px; border-radius: 5px; letter-spacing: .05em;
+}
+.past-card-title { font-size: 14px; font-weight: 800; margin-bottom: 10px; color: #111; }
+.past-card[data-taps="1"] { border-color: #f0b429; }
+.past-card[data-taps="2"] { border-color: #e08000; }
+.past-card[data-taps="3"] { border-color: #e05000; }
+.past-card[data-taps="4"] { border-color: #e03000; }
+.past-card .delete-hint {
+  font-size: 11px; color: #aaa; text-align: center;
+  margin-top: 8px; font-weight: 500;
+}
+
+/* dark toggle */
+.dark-toggle {
+  position: fixed; bottom: 22px; right: 18px; width: 44px; height: 44px; border-radius: 50%;
+  background: #fff; border: 1px solid #ddd; box-shadow: 0 2px 10px rgba(0,0,0,.14);
+  display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 19px; z-index: 99;
+}
+
+/* ══ DARK MODE ══ */
+body.dark { background: #0f1520; color: #dde3f0; }
+body.dark .card, body.dark .form-section, body.dark .current-card, body.dark .past-card { background: #1a2235; }
+body.dark .otp-card { background: #1a2b10; border-color: #3a5a20; }
+body.dark h1.page-title, body.dark .past-title { color: #dde3f0; }
+body.dark .card-title { color: #7ba7e0; border-color: #2a3550; }
+body.dark .field label { color: #94a3b8; }
+body.dark .field input { background: #222d42; border-color: #2e3e5c; color: #dde3f0; }
+body.dark .field input.editable-p1 { background: #2a1818; border-color: #5a2a2a; }
+body.dark .field input.editable-p1.filled { background: #0e2212; border-color: #43a047; }
+body.dark .field input.editable { background: #2a1818; border-color: #5a2a2a; }
+body.dark .field input.editable.filled { background: #0e2212; border-color: #43a047; }
+body.dark .field input[readonly] { background: #181f2e; color: #5a6880; }
+body.dark .handled-box { background: #141d2e; border-color: #2a3550; }
+body.dark .detail-line { color: #94a3b8; }
+body.dark .detail-line strong, body.dark .current-card-title, body.dark .past-card-title { color: #dde3f0; }
+body.dark .otp-card-title, body.dark .otp-card-dates { color: #dde3f0; }
+body.dark .otp-card-number { color: #4cda65; }
+body.dark .dark-toggle { background: #1a2235; border-color: #2a3550; }
+body.dark .success-banner { background: #0e2212; border-color: #43a047; color: #6fcf80; }
+body.dark .photo-circle { background: #1e2d48; }
+
+@media (max-width: 680px) {
+  .header-center { display: none; }
+  .header-title { font-size: 14px; }
+  .p-name, .p-email { max-width: 70px; }
+  .btn-header { padding: 6px 10px; font-size: 11px; }
+  .field-row { grid-template-columns: 1fr; }
+  .bottom-grid { grid-template-columns: 1fr; }
+  .past-grid { grid-template-columns: 1fr; }
+  .page-wrap, .page-wrap-wide { padding: 16px 12px 60px; }
+  .form-col { max-width: 100%; }
+
+  /* Date & time fields: smaller on mobile, label on its own line, input on next */
+  .field-date-mobile label {
+    font-size: 11px;
+    margin-bottom: 4px;
+    display: block;
+    white-space: nowrap;
+  }
+  .field-date-mobile input {
+    font-size: 13px;
+    padding: 9px 10px;
+    width: 100%;
+    display: block;
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- ══ HEADER ══ -->
+<div class="header">
+  <div class="header-left">
+    <div class="srm-logo"><img src="srm logo.png" alt="SRM"/></div>
+    <span class="header-title" id="header-title">SRM KTR</span>
+  </div>
+  <div class="header-center" id="header-center">My Profile</div>
+  <div class="header-right">
+    <div class="profile-badge" id="profile-badge">
+      <div class="profile-avatar" id="badge-avatar">
+        <img id="badge-avatar-img" src="" alt="" style="display:none"/>
+        <span id="badge-initials"></span>
+      </div>
+      <div class="p-info">
+        <span class="p-name"  id="badge-name"></span>
+        <span class="p-email" id="badge-email"></span>
+      </div>
+    </div>
+    <button class="btn-header" id="header-btn" onclick="goToPage1()">Edit Profile</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     PAGE 1 — PROFILE SETUP
+══════════════════════════════ -->
+<div class="page active" id="page1">
+<div class="page-wrap">
+  <h1 class="page-title">My Profile</h1>
+  <hr class="title-divider"/>
+
+  <div class="success-banner" id="success-banner">
+    ✅ Profile saved! Tap below to request an outing.
+  </div>
+
+  <!-- Photo -->
+  <div class="photo-section">
+    <div class="photo-circle" title="Tap to add photo">
+      <div class="photo-hint-inner" id="photo-hint" style="display:none">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="8" r="4" fill="#888"/>
+          <path d="M4 20c0-4 3.582-7 8-7s8 3 8 7" fill="#888"/>
+        </svg>
+        <span>ADD PHOTO</span>
+      </div>
+      <img id="photo-preview" src="srm logo.png" alt="SRM" style="display:block;"/>
+      <input type="file" accept="image/*" onchange="handlePhoto(this)"/>
+    </div>
+    <span class="photo-label">Profile Photo (optional)</span>
+  </div>
+
+  <!-- Student details -->
+  <div class="card">
+    <div class="card-title">Student Details</div>
+    <div class="field">
+      <label>Full Name</label>
+      <input type="text" id="p1-fullname" class="editable-p1"
+             placeholder="e.g. INFANTA JENITA I"
+             oninput="p1Live(this);checkP1Save()"/>
+    </div>
+    <div class="field">
+      <label>Registration Number</label>
+      <input type="text" id="p1-regno" class="editable-p1"
+             placeholder="e.g. RA2411017010011"
+             oninput="p1Live(this);checkP1Save()"/>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Room Number</label>
+        <input type="text" id="p1-roomno" class="editable-p1"
+               placeholder="e.g. 107"
+               oninput="p1Live(this);checkP1Save()"/>
+      </div>
+      <div class="field">
+        <label>Hostel Name</label>
+        <input type="text" id="p1-hostel" class="editable-p1"
+               placeholder="e.g. Kalpana Chawla"
+               oninput="p1Live(this);checkP1Save()"/>
+      </div>
+    </div>
+    <div class="field">
+      <label>SRM Email</label>
+      <input type="email" id="p1-srmemail" class="editable-p1"
+             placeholder="e.g. ij9386@srmist.edu.in"
+             oninput="p1Live(this);checkP1Save()"/>
+    </div>
+    <div class="field">
+      <label>Your Phone Number</label>
+      <input type="tel" id="p1-myphone" class="editable-p1"
+             placeholder="e.g. 9876543210"
+             oninput="p1Live(this);checkP1Save()"/>
+    </div>
+  </div>
+
+  <!-- Parent details -->
+  <div class="card">
+    <div class="card-title">Parent Details</div>
+    <div class="field">
+      <label>Parent Email</label>
+      <input type="email" id="p1-parentemail" class="editable-p1"
+             placeholder="e.g. parent@gmail.com"
+             oninput="p1Live(this);checkP1Save()"/>
+    </div>
+    <div class="field">
+      <label>Parent Phone Number</label>
+      <input type="tel" id="p1-parentphone" class="editable-p1"
+             placeholder="e.g. 9443086267"
+             oninput="p1Live(this);checkP1Save()"/>
+    </div>
+  </div>
+
+  <button class="btn-primary" id="save-btn" disabled onclick="saveProfile()">
+    Save Profile
+  </button>
+  <button class="btn-green" id="proceed-btn" onclick="goToPage2()">
+    → Request Outing
+  </button>
+</div>
+</div><!-- /page1 -->
+
+<!-- ══════════════════════════════
+     PAGE 2 — REQUEST OUTING
+══════════════════════════════ -->
+<div class="page" id="page2">
+<div class="page-wrap-wide">
+<div class="form-col">
+  <h1 class="page-title">Request Outing</h1>
+  <hr class="title-divider"/>
+
+  <div class="alert-red" id="active-alert">
+    You already have a pending or active outing request. Please complete or delete it before making a new one.
+  </div>
+
+  <div class="form-section" id="outing-form">
+    <div class="field">
+      <label>Full Name:</label>
+      <input type="text" id="p-fullname" readonly/>
+    </div>
+    <div class="field">
+      <label>Email (SRM):</label>
+      <input type="text" id="p-srmemail" readonly/>
+    </div>
+    <div class="field">
+      <label>Room Number:</label>
+      <input type="text" id="p-roomno" readonly/>
+    </div>
+    <div class="field">
+      <label>Hostel Name:</label>
+      <input type="text" id="p-hostel" readonly/>
+    </div>
+    <div class="field field-date-mobile">
+      <label class="blue">Out Date:</label>
+      <input type="date" id="out-date" class="editable"
+             onchange="liveCheck(this);checkForm()" oninput="liveCheck(this);checkForm()"/>
+    </div>
+    <div class="field field-date-mobile">
+      <label class="blue">Out Time:</label>
+      <input type="time" id="out-time" class="editable"
+             onchange="liveCheck(this);checkForm()" oninput="liveCheck(this);checkForm()"/>
+    </div>
+    <div class="field field-date-mobile">
+      <label class="blue">In Date:</label>
+      <input type="date" id="in-date" class="editable"
+             onchange="liveCheck(this);checkForm()" oninput="liveCheck(this);checkForm()"/>
+    </div>
+    <div class="field field-date-mobile">
+      <label class="blue">In Time:</label>
+      <input type="time" id="in-time" class="editable"
+             onchange="liveCheck(this);checkForm()" oninput="liveCheck(this);checkForm()"/>
+    </div>
+    <div class="field">
+      <label class="blue">Reason for Outing:</label>
+      <input type="text" id="reason" class="editable"
+             placeholder="Enter reason for outing"
+             oninput="liveCheck(this);checkForm()"/>
+    </div>
+    <div class="field">
+      <label>Parent Email:</label>
+      <input type="text" id="p-parentemail" readonly/>
+    </div>
+    <div class="field">
+      <label>Parent Phone:</label>
+      <input type="text" id="p-parentphone" readonly/>
+    </div>
+    <button class="btn-send" id="send-btn" disabled onclick="submitRequest()">Send Request</button>
+  </div>
+</div>
+
+<!-- post-submit -->
+<div id="post-submit-section" style="display:none">
+  <div class="alert-otp-date" id="otp-date-alert"></div>
+  <div class="bottom-grid visible" id="bottom-grid">
+    <div class="current-card">
+      <div class="current-card-body">
+        <div class="current-card-title">Current Request</div>
+        <div class="still-out-badge">STILL_OUT</div>
+        <div class="detail-line"><strong>Out Date:</strong> <span id="disp-out-date"></span></div>
+        <div class="detail-line"><strong>Out Time:</strong> <span id="disp-out-time"></span></div>
+        <div class="detail-line"><strong>In Date:</strong>  <span id="disp-in-date"></span></div>
+        <div class="detail-line"><strong>In Time:</strong>  <span id="disp-in-time"></span></div>
+        <div class="detail-line"><strong>Reason:</strong>   <span id="disp-reason"></span></div>
+        <div class="detail-line"><strong>Status:</strong>   still_out</div>
+        <div class="handled-box">
+          <p><strong>Handled on:</strong> <span id="disp-handled-on"></span></p>
+          <p><strong>Handled by:</strong> <span id="disp-handled-by">Pavithra</span></p>
+        </div>
+      </div>
+      <button class="btn-otp" id="gen-otp-btn" onclick="generateOTP()">Generate OTP</button>
+    </div>
+    <div class="otp-card" id="otp-card">
+      <div class="otp-card-title">OTP for Arch Gate</div>
+      <hr class="otp-card-line"/>
+      <div class="otp-card-dates" id="otp-dates"></div>
+      <div class="otp-card-number" id="otp-number"></div>
+      <div class="otp-card-note">Please present this OTP at the Arch Gate<br/>when returning to SRM.</div>
+    </div>
+  </div>
+</div>
+
+<!-- past outings -->
+<div class="past-title">Past Outings</div>
+<div class="past-divider"></div>
+<div class="past-grid" id="past-grid-dynamic"></div>
+
+</div><!-- /page-wrap-wide -->
+</div><!-- /page2 -->
+
+<div class="dark-toggle" onclick="toggleDark()">🌙</div>
+
+<script>
+/* ══ SAFE STORAGE ══ */
+const _mem = {};
+function sGet(k)   { try { return localStorage.getItem(k); }  catch(e) { return _mem[k]??null; } }
+function sSet(k,v) { try { localStorage.setItem(k,v); }       catch(e) { _mem[k]=v; } }
+function sDel(k)   { try { localStorage.removeItem(k); }      catch(e) { delete _mem[k]; } }
+
+const PROFILE_KEY = 'srm_profile';
+const PHOTO_KEY   = 'srm_profile_photo';
+const STORE_KEY   = 'srm_outing_request';
+const OTP_KEY     = 'srm_outing_otp';
+const OTP_TAP_KEY = 'srm_otp_tap_count';
+const DARK_KEY    = 'srm_dark_mode';
+
+/* ══ PAGE SWITCHING ══ */
+function showPage(n) {
+  document.getElementById('page1').classList.toggle('active', n===1);
+  document.getElementById('page2').classList.toggle('active', n===2);
+  const titles = { 1:'My Profile', 2:'Request Outing' };
+  document.getElementById('header-center').textContent = titles[n];
+  document.getElementById('header-title').textContent  = n===1 ? 'SRM KTR' : 'REQUEST OUTING';
+  document.getElementById('header-btn').textContent    = n===1 ? '' : 'Edit Profile';
+  document.getElementById('header-btn').style.display  = n===1 ? 'none' : 'block';
+  window.scrollTo(0,0);
+}
+function goToPage1() { showPage(1); }
+function goToPage2() {
+  loadProfileIntoPage2();
+  showPage(2);
+  renderPastOutings();
+  /* restore active request if any */
+  const saved = sGet(STORE_KEY);
+  if (saved) { try { renderActive(JSON.parse(saved)); } catch(e) { sDel(STORE_KEY); } }
+}
+
+/* ══ PAGE 1 LOGIC ══ */
+function handlePhoto(input) {
+  if (!input.files||!input.files[0]) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    applyPhoto(e.target.result);
+    sSet(PHOTO_KEY, e.target.result);
+    updateBadge();
+  };
+  reader.readAsDataURL(input.files[0]);
+}
+function applyPhoto(src) {
+  const img = document.getElementById('photo-preview');
+  img.src = src; img.style.display = 'block';
+  document.getElementById('photo-hint').style.display = 'none';
+  const bImg = document.getElementById('badge-avatar-img');
+  bImg.src = src; bImg.style.display = 'block';
+  document.getElementById('badge-initials').style.display = 'none';
+}
+
+function resetPhotoToLogo() {
+  const img = document.getElementById('photo-preview');
+  img.src = 'srm logo.png'; img.style.display = 'block';
+  document.getElementById('photo-hint').style.display = 'none';
+}
+
+function p1Live(el) {
+  el.classList.toggle('filled', el.value.trim().length > 0);
+  updateBadge();
+}
+
+const P1_REQUIRED = ['p1-fullname','p1-regno','p1-roomno','p1-hostel','p1-srmemail','p1-parentemail','p1-parentphone'];
+function checkP1Save() {
+  const ok = P1_REQUIRED.every(id => document.getElementById(id).value.trim().length > 0);
+  const btn = document.getElementById('save-btn');
+  btn.disabled = !ok;
+  btn.classList.toggle('active', ok);
+}
+
+function updateBadge() {
+  const name  = document.getElementById('p1-fullname').value.trim();
+  const email = document.getElementById('p1-srmemail').value.trim();
+  const badge = document.getElementById('profile-badge');
+  if (!name && !email) { badge.style.display = 'none'; return; }
+  badge.style.display = 'flex';
+  document.getElementById('badge-name').textContent  = name  || '—';
+  document.getElementById('badge-email').textContent = email || '—';
+  if (!sGet(PHOTO_KEY)) {
+    const parts = name.split(' ');
+    const ini   = (parts[0]?.[0]||'') + (parts[1]?.[0]||'');
+    document.getElementById('badge-initials').textContent   = ini.toUpperCase();
+    document.getElementById('badge-initials').style.display = 'block';
+    document.getElementById('badge-avatar-img').style.display = 'none';
+  }
+}
+
+function saveProfile() {
+  const profile = {
+    fullname    : document.getElementById('p1-fullname').value.trim(),
+    regno       : document.getElementById('p1-regno').value.trim(),
+    roomno      : document.getElementById('p1-roomno').value.trim(),
+    hostel      : document.getElementById('p1-hostel').value.trim(),
+    srmemail    : document.getElementById('p1-srmemail').value.trim(),
+    myphone     : document.getElementById('p1-myphone').value.trim(),
+    parentemail : document.getElementById('p1-parentemail').value.trim(),
+    parentphone : document.getElementById('p1-parentphone').value.trim(),
+  };
+  sSet(PROFILE_KEY, JSON.stringify(profile));
+  document.getElementById('success-banner').classList.add('show');
+  document.getElementById('proceed-btn').classList.add('show');
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+/* ══ PAGE 2 LOGIC ══ */
+function loadProfileIntoPage2() {
+  const raw = sGet(PROFILE_KEY);
+  if (!raw) return;
+  try {
+    const p = JSON.parse(raw);
+    document.getElementById('p-fullname').value    = p.fullname + (p.regno ? ` (${p.regno})` : '');
+    document.getElementById('p-srmemail').value    = p.srmemail    || '';
+    document.getElementById('p-roomno').value      = p.roomno      || '';
+    document.getElementById('p-hostel').value      = p.hostel      || '';
+    document.getElementById('p-parentemail').value = p.parentemail || '';
+    document.getElementById('p-parentphone').value = p.parentphone || '';
+    /* update badge on page 2 */
+    const badge = document.getElementById('profile-badge');
+    badge.style.display = 'flex';
+    document.getElementById('badge-name').textContent  = p.fullname  || '';
+    document.getElementById('badge-email').textContent = p.srmemail  || '';
+    const photo = sGet(PHOTO_KEY);
+    if (photo) {
+      const img = document.getElementById('badge-avatar-img');
+      img.src = photo; img.style.display = 'block';
+      document.getElementById('badge-initials').style.display = 'none';
+    } else {
+      const parts = (p.fullname||'').split(' ');
+      document.getElementById('badge-initials').textContent   = ((parts[0]?.[0]||'')+(parts[1]?.[0]||'')).toUpperCase();
+      document.getElementById('badge-initials').style.display = 'block';
+      document.getElementById('badge-avatar-img').style.display = 'none';
+    }
+  } catch(e) {}
+}
+
+function liveCheck(el) { el.classList.toggle('filled', el.value.trim().length > 0); }
+
+function checkForm() {
+  const ok = ['out-date','out-time','in-date','in-time','reason']
+    .every(id => document.getElementById(id).value.trim().length > 0);
+  const btn = document.getElementById('send-btn');
+  btn.disabled = !ok;
+  btn.classList.toggle('active', ok);
+}
+
+function todayStr() {
+  const d = new Date(), pad = n => String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+}
+
+function renderActive(state) {
+  document.getElementById('disp-out-date').textContent  = state.outDate;
+  document.getElementById('disp-out-time').textContent  = state.outTime;
+  document.getElementById('disp-in-date').textContent   = state.inDate;
+  document.getElementById('disp-in-time').textContent   = state.inTime;
+  document.getElementById('disp-reason').textContent    = state.reason;
+  document.getElementById('disp-handled-on').textContent= state.handledOn;
+  /* show shuffled handler name */
+  const hbEl = document.getElementById('disp-handled-by');
+  if (hbEl) hbEl.textContent = state.handledBy || 'Pavithra';
+  document.getElementById('otp-dates').textContent = `Out Date: ${state.outDate} | In Date: ${state.inDate}`;
+  const today = todayStr();
+  const da = document.getElementById('otp-date-alert');
+  if (state.outDate !== today) {
+    da.textContent = `OTP will be available on your out date only (Today: ${today}, Out Date: ${state.outDate})`;
+    da.style.display = 'block';
+  } else { da.style.display = 'none'; }
+  const savedOtp = sGet(OTP_KEY);
+  if (savedOtp) document.getElementById('otp-number').textContent = savedOtp;
+  updateOtpBtn();
+  document.getElementById('active-alert').style.display = 'block';
+  document.getElementById('outing-form').classList.add('frozen');
+  document.getElementById('send-btn').style.display = 'none';
+  document.getElementById('post-submit-section').style.display = 'block';
+}
+
+function updateOtpBtn() {
+  const taps = parseInt(sGet(OTP_TAP_KEY)||'0');
+  const rem  = 5 - taps;
+  const btn  = document.getElementById('gen-otp-btn');
+  if (rem <= 0) {
+    btn.textContent = 'OTP limit reached';
+    btn.style.background = '#aaa'; btn.disabled = true;
+    btn.classList.add('used');
+  } else if (taps > 0) {
+    /* already used at least once — show grey to indicate used */
+    btn.textContent = 'Generate OTP';
+    btn.style.background = '#888'; btn.disabled = false;
+    btn.classList.add('used');
+  } else {
+    btn.textContent = 'Generate OTP';
+    btn.style.background = '#27ae38'; btn.disabled = false;
+    btn.classList.remove('used');
+  }
+}
+
+function submitRequest() {
+  const outDate = document.getElementById('out-date').value;
+  const outTime = document.getElementById('out-time').value;
+  const inDate  = document.getElementById('in-date').value;
+  const inTime  = document.getElementById('in-time').value;
+  const reason  = document.getElementById('reason').value.trim();
+  const now = new Date(), pad = n => String(n).padStart(2,'0');
+  const handledOn = `${pad(now.getDate())}/${pad(now.getMonth()+1)}/${now.getFullYear()}, ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+  const handlers = ['Pavithra', 'Keerthika'];
+  const handledBy = handlers[Math.floor(Math.random() * handlers.length)];
+  const state = { outDate, outTime, inDate, inTime, reason, handledOn, handledBy };
+  sSet(STORE_KEY, JSON.stringify(state)); sDel(OTP_KEY); sSet(OTP_TAP_KEY,'0');
+  renderActive(state);
+  setTimeout(() => document.getElementById('post-submit-section').scrollIntoView({behavior:'smooth',block:'start'}), 120);
+}
+
+function generateOTP() {
+  let taps = parseInt(sGet(OTP_TAP_KEY)||'0');
+  if (taps >= 5) return;
+  taps++; sSet(OTP_TAP_KEY, String(taps));
+  const otp = Math.floor(100000 + Math.random()*900000).toString();
+  document.getElementById('otp-number').textContent = otp;
+  updateOtpBtn();
+  if (taps >= 5) {
+    /* save completed outing to past outings */
+    const stateRaw = sGet(STORE_KEY);
+    if (stateRaw) {
+      try {
+        const state = JSON.parse(stateRaw);
+        const past = JSON.parse(sGet('srm_past_outings') || '[]');
+        const handlers = ['Pavithra', 'Keerthika'];
+        past.unshift({
+          outDate   : state.outDate,
+          outTime   : state.outTime,
+          inDate    : state.inDate,
+          inTime    : state.inTime,
+          reason    : state.reason,
+          handledOn : state.handledOn,
+          handledBy : handlers[Math.floor(Math.random() * handlers.length)]
+        });
+        sSet('srm_past_outings', JSON.stringify(past));
+      } catch(e) {}
+    }
+    setTimeout(() => { sDel(STORE_KEY); sDel(OTP_KEY); sDel(OTP_TAP_KEY); location.reload(); }, 1500);
+    return;
+  }
+  sSet(OTP_KEY, otp);
+}
+
+/* ══ PAST OUTINGS — dynamic render + 5-tap delete ══ */
+const PAST_KEY = 'srm_past_outings';
+
+function renderPastOutings() {
+  const past = JSON.parse(sGet(PAST_KEY) || '[]');
+  const grid = document.getElementById('past-grid-dynamic');
+  if (!grid) return;
+  grid.innerHTML = '';
+  past.forEach((o, idx) => {
+    const card = document.createElement('div');
+    card.className = 'past-card';
+    card.dataset.taps = '0';
+    card.dataset.idx  = idx;
+    card.innerHTML = `
+      <div class="confirmed-badge">CONFIRMED</div>
+      <div class="past-card-title">Booking Details</div>
+      <div class="detail-line"><strong>Out Date:</strong> ${o.outDate}</div>
+      <div class="detail-line"><strong>Out Time:</strong> ${o.outTime}</div>
+      <div class="detail-line"><strong>In Date:</strong>  ${o.inDate}</div>
+      <div class="detail-line"><strong>In Time:</strong>  ${o.inTime}</div>
+      <div class="detail-line"><strong>Reason:</strong>   ${o.reason}</div>
+      <div class="detail-line"><strong>Status:</strong>   confirmed</div>
+      <div class="handled-box">
+        <p><strong>Handled on:</strong> ${o.handledOn}</p>
+        <p><strong>Handled by:</strong> ${o.handledBy}</p>
+      </div>
+      <div class="delete-hint"></div>`;
+    /* 5-tap delete */
+    card.addEventListener('click', () => {
+      let t = parseInt(card.dataset.taps) + 1;
+      card.dataset.taps = t;
+      const hint = card.querySelector('.delete-hint');
+      if (t < 5) {
+        hint.textContent = `Tap ${5-t} more time${5-t>1?'s':''} to delete`;
+      } else {
+        /* delete */
+        const arr = JSON.parse(sGet(PAST_KEY) || '[]');
+        arr.splice(parseInt(card.dataset.idx), 1);
+        sSet(PAST_KEY, JSON.stringify(arr));
+        renderPastOutings();
+      }
+    });
+    grid.appendChild(card);
+  });
+}
+
+function toggleDark() {
+  document.body.classList.toggle('dark');
+  const d = document.body.classList.contains('dark');
+  document.querySelector('.dark-toggle').textContent = d ? '☀️' : '🌙';
+  sSet(DARK_KEY, d ? '1' : '0');
+}
+
+/* ══ ON LOAD ══ */
+window.addEventListener('DOMContentLoaded', () => {
+  /* seed default past outings if none saved yet */
+  if (!sGet(PAST_KEY)) {
+    const defaults = [
+      { outDate:'2026-03-19', outTime:'08:30', inDate:'2026-03-19', inTime:'17:10', reason:'Club',            handledOn:'19/03/2026, 20:56:27', handledBy:'Pavithra' },
+      { outDate:'2026-03-01', outTime:'09:00', inDate:'2026-03-01', inTime:'16:00', reason:'Event organizing', handledOn:'03/03/2026, 06:18:41', handledBy:'Keerthika' },
+      { outDate:'2026-02-28', outTime:'09:00', inDate:'2026-02-28', inTime:'16:00', reason:'Event organizing', handledOn:'01/03/2026, 07:37:31', handledBy:'Pavithra' },
+      { outDate:'2026-02-18', outTime:'21:00', inDate:'2026-02-23', inTime:'09:00', reason:'Weekend',          handledOn:'27/02/2026, 13:25:52', handledBy:'Keerthika' },
+      { outDate:'2026-02-15', outTime:'09:00', inDate:'2026-02-15', inTime:'17:10', reason:'Temple',           handledOn:'18/02/2026, 18:20:57', handledBy:'Pavithra' },
+      { outDate:'2026-02-08', outTime:'09:00', inDate:'2026-02-08', inTime:'17:10', reason:'Temple',           handledOn:'13/02/2026, 05:38:00', handledBy:'Keerthika' },
+    ];
+    sSet(PAST_KEY, JSON.stringify(defaults));
+  }
+  renderPastOutings();
+
+  if (sGet(DARK_KEY)==='1') {
+    document.body.classList.add('dark');
+    document.querySelector('.dark-toggle').textContent = '☀️';
+  }
+
+  const photo = sGet(PHOTO_KEY);
+  if (photo) applyPhoto(photo);
+  else resetPhotoToLogo();
+
+  /* if profile exists, restore page 1 fields */
+  const profRaw = sGet(PROFILE_KEY);
+  if (profRaw) {
+    try {
+      const p = JSON.parse(profRaw);
+      document.getElementById('p1-fullname').value    = p.fullname    || '';
+      document.getElementById('p1-regno').value       = p.regno       || '';
+      document.getElementById('p1-roomno').value      = p.roomno      || '';
+      document.getElementById('p1-hostel').value      = p.hostel      || '';
+      document.getElementById('p1-srmemail').value    = p.srmemail    || '';
+      document.getElementById('p1-myphone').value     = p.myphone     || '';
+      document.getElementById('p1-parentemail').value = p.parentemail || '';
+      document.getElementById('p1-parentphone').value = p.parentphone || '';
+      P1_REQUIRED.forEach(id => {
+        const el = document.getElementById(id);
+        if (el.value.trim()) el.classList.add('filled');
+      });
+      checkP1Save();
+      updateBadge();
+      document.getElementById('proceed-btn').classList.add('show');
+      document.getElementById('success-banner').classList.add('show');
+
+      /* if there's also an active outing, go straight to page 2 */
+      if (sGet(STORE_KEY)) { goToPage2(); return; }
+    } catch(e) {}
+  }
+
+  showPage(1);
+});
+</script>
+</body>
+</html>
